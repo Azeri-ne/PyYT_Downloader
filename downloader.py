@@ -1,5 +1,4 @@
 from pytubefix import YouTube, Playlist
-from pytubefix.cli import on_progress
 from pathlib import Path
 
 CURRENT_DIRECTORY = Path(__file__).parent
@@ -19,20 +18,6 @@ def get_audio_stream(url:str) -> str:
     return audio_stream
 
 
-def download_single_video(url:str) -> None:
-    yt = YouTube(url,
-                 use_po_token=True)
-    print(yt.title)
-
-    yt_stream = yt.streams.get_by_resolution(1440)
-    try:
-        yt_stream.download(output_path=DOWNLOAD_PATH)
-
-    except Exception as error:
-        print(f"Error! Can't find video. ({error})")
-    print("+--------------------+")
-
-
 def download_single_audio(url:str) -> None:
     audio_stream = get_audio_stream(url)
     try:
@@ -40,31 +25,6 @@ def download_single_audio(url:str) -> None:
 
     except Exception as error:
         print(f"Error! Download failed: ({error})")
-    print("+--------------------+")
-
-
-def download_playlist_video(url:str) -> None:
-    playlist = Playlist(url)
-    playlist_title = playlist.title
-
-    playlist_folder = DOWNLOAD_PATH / playlist_title
-    playlist_folder.mkdir(parents=True, exist_ok=True)
-    downloaded_videos = 0
-
-    for video in playlist.videos:
-        try:
-            print(video.title)
-            yt_stream = video.streams.get_by_resolution(720)
-            yt_stream.download(output_path=playlist_folder,
-                               filename_prefix=f"{downloaded_videos + 1} - ",
-                               max_retries=3)
-            downloaded_videos += 1
-
-        except Exception as error:
-            print(f"Error! Can't find video. ({error})")
-            continue
-
-    print(f"Process complete: {downloaded_videos} videos downloaded.")
     print("+--------------------+")
 
 
@@ -98,6 +58,45 @@ def download_playlist_audio(url:str) -> None:
         print("These audio failed to download:")
         for failed_download in failed_downloads:
             print(failed_download)
+    print("+--------------------+")
+
+
+def download_single_video(url:str) -> None:
+    yt = YouTube(url,
+                 use_po_token=True)
+    print(yt.title)
+
+    yt_stream = yt.streams.get_by_resolution(1440)
+    try:
+        yt_stream.download(output_path=DOWNLOAD_PATH)
+
+    except Exception as error:
+        print(f"Error! Can't find video. ({error})")
+    print("+--------------------+")
+
+
+def download_playlist_video(url:str) -> None:
+    playlist = Playlist(url)
+    playlist_title = playlist.title
+
+    playlist_folder = DOWNLOAD_PATH / playlist_title
+    playlist_folder.mkdir(parents=True, exist_ok=True)
+    downloaded_videos = 0
+
+    for video in playlist.videos:
+        try:
+            print(video.title)
+            yt_stream = video.streams.get_by_resolution(720)
+            yt_stream.download(output_path=playlist_folder,
+                               filename_prefix=f"{downloaded_videos + 1} - ",
+                               max_retries=3)
+            downloaded_videos += 1
+
+        except Exception as error:
+            print(f"Error! Can't find video. ({error})")
+            continue
+
+    print(f"Process complete: {downloaded_videos} videos downloaded.")
     print("+--------------------+")
 
 
