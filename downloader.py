@@ -9,28 +9,38 @@ def main() -> None:
     pass
 
 
-def download_single_video(url:str) -> None:
-    yt = YouTube(url, on_progress_callback=on_progress)
+def get_audio_stream(url:str) -> str:
+    yt = YouTube(url, 
+                 use_po_token=True)
     print(yt.title)
 
-    yt_stream = yt.streams.get_by_resolution(720)
+    audio_stream = yt.streams.get_audio_only()
+
+    return audio_stream
+
+
+def download_single_video(url:str) -> None:
+    yt = YouTube(url,
+                 use_po_token=True)
+    print(yt.title)
+
+    yt_stream = yt.streams.get_by_resolution(1440)
     try:
         yt_stream.download(output_path=DOWNLOAD_PATH)
 
     except Exception as error:
         print(f"Error! Can't find video. ({error})")
+    print("+--------------------+")
 
 
 def download_single_audio(url:str) -> None:
-    yt = YouTube(url, on_progress_callback=on_progress)
-    print(yt.title)
-
-    yt_stream = yt.streams.get_audio_only()
+    audio_stream = get_audio_stream(url)
     try:
-        yt_stream.download(output_path=DOWNLOAD_PATH)
+        audio_stream.download(output_path=DOWNLOAD_PATH)
 
     except Exception as error:
-        print(f"Error! Can't find video. ({error})")
+        print(f"Error! Download failed: ({error})")
+    print("+--------------------+")
 
 
 def download_playlist_video(url:str) -> None:
@@ -55,6 +65,7 @@ def download_playlist_video(url:str) -> None:
             continue
 
     print(f"Process complete: {downloaded_videos} videos downloaded.")
+    print("+--------------------+")
 
 
 def download_playlist_audio(url:str) -> None:
@@ -69,9 +80,8 @@ def download_playlist_audio(url:str) -> None:
 
     for video in playlist.videos:
         try:
-            print(video.title)
-            yt_stream = video.streams.get_audio_only()
-            yt_stream.download(output_path=playlist_folder,
+            audio_stream = get_audio_stream(url)
+            audio_stream.download(output_path=playlist_folder,
                                filename_prefix=f"{downloaded_videos + 1} - ",
                                max_retries=3)
             downloaded_videos += 1
@@ -84,11 +94,11 @@ def download_playlist_audio(url:str) -> None:
             continue
 
     print(f"Process complete: {downloaded_videos} audio downloaded.")
-
     if failed_downloads:
         print("These audio failed to download:")
         for failed_download in failed_downloads:
             print(failed_download)
+    print("+--------------------+")
 
 
 def get_titles_in_playlist(url:str) -> None:
@@ -101,6 +111,7 @@ def get_titles_in_playlist(url:str) -> None:
         except Exception as e:
             print(f"Error! Can't find video. ({e})")
             continue
+    print("+--------------------+")
 
 
 if __name__ == '__main__':
