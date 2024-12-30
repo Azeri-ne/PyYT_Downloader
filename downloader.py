@@ -5,7 +5,7 @@ CURRENT_DIRECTORY = Path(__file__).parent
 DOWNLOAD_PATH = CURRENT_DIRECTORY / 'Downloads'
 
 def main() -> None:
-    download_single_video(r'https://www.youtube.com/watch?v=ld1GJ0zvsas')
+    download_single_video(r'https://www.youtube.com/watch?v=GkFqe3tZVpg&pp=ygURaG90IHBvdCBjb21tYW5kZXI%3D', [720, 1080])
 
 def handle_playlist_error(error, failed_downloads, 
                           downloaded_videos, video) -> None:
@@ -44,18 +44,15 @@ def check_for_valid_resolution(resolution:int) -> bool:
     return False
 
 # New get_stream function WIP
-def get_stream(url:str, stream_type:str, *resolution:int):
+def get_stream(url:str, stream_type:str, *resolution:int) -> str:
     if not url.startswith('https://www.youtube.com'):
         print("Error: Invalid URL")
         # Log this
         return None
 
     if len(resolution) > 1:
-        print("Error: Only one resolution is allowed")
-        # You can pick the make it return 1 resolution with the highest instead
-        return None
+        print("Warning: Only one resolution is allowed")
 
-    video_resolution = resolution[0]
     yt = YouTube(url, use_po_token=True)
     print(yt.title)
 
@@ -65,6 +62,7 @@ def get_stream(url:str, stream_type:str, *resolution:int):
         return audio_stream
 
     if stream_type == 'video':
+        video_resolution = resolution[0]
         if check_for_valid_resolution(video_resolution):
             video_stream = yt.streams.get_by_resolution(video_resolution)
             
@@ -77,26 +75,44 @@ def get_stream(url:str, stream_type:str, *resolution:int):
     return None
 
 
-def download_single_audio(url:str) -> None:
-    audio_stream = get_stream(url, 'audio')
+def new_download_stream(url:str, stream_type:str, *resolution:int) -> None:
+    if stream_type == 'audio':
+        stream = get_stream(url, 'audio')
+
+    if stream_type == 'video':
+        # Check for valid resolution here?
+        stream = get_stream(url, 'video', resolution)
 
     try:
-        audio_stream.download(output_path=DOWNLOAD_PATH)
+        if stream == None:
+            raise Exception
+        
+        stream.download(output_path=DOWNLOAD_PATH)
 
-    except Exception as error:
-        print(f"Error! Download failed: ({error})")
-    print_border()
+    except Exception:
+        print(f"Error: Download failed")
+    print("+--------------------+")
+
+def download_stream(stream:str) -> None:
+    try:
+        if stream == None:
+            raise Exception
+        
+        stream.download(output_path=DOWNLOAD_PATH)
+
+    except Exception:
+        print(f"Error: Download failed")
+
+    print("+--------------------+")
+
+def download_single_audio(url:str) -> None:
+    audio_stream = get_stream(url, 'audio')
+    download_stream(audio_stream)
 
 
 def download_single_video(url:str, resolution:int) -> None:
     video_stream = get_stream(url, 'video', resolution)
-
-    try:
-        video_stream.download(output_path=DOWNLOAD_PATH)
-
-    except Exception as error:
-        print(f"Error! Can't find video. ({error})")
-    print_border()
+    download_stream(video_stream)
 
 
 def download_playlist_audio(url:str) -> None:
