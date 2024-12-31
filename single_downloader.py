@@ -5,18 +5,15 @@ CURRENT_DIRECTORY = Path(__file__).parent
 DOWNLOAD_PATH = CURRENT_DIRECTORY / 'Downloads'
 
 def main() -> None:
-    download_single_audio('https://www.youtube.com/watch?v=9TUh_1L2NfE')
+    download_single_video('https://www.youtube.com/watch?v=9TUh_1L2NfE', (720, 480))
 
 
 def check_for_valid_resolution(resolution:int) -> bool:
-    print(resolution)
     valid_resolutions = [144, 240, 360, 480, 720, 1080]
 
     if resolution in valid_resolutions:
-        print("True")
         return True
 
-    print("False")
     return False
 
 
@@ -29,9 +26,6 @@ def check_for_valid_url(url:str) -> bool:
 
 def download_stream(stream:str) -> None:
     try:
-        if stream == None:
-            raise ValueError("Stream is None")
-        
         stream.download(output_path=DOWNLOAD_PATH)
 
     except Exception as error:
@@ -56,8 +50,12 @@ def get_video_stream(url:str, *resolution:int) -> str:
     if not check_for_valid_url(url):
         print("Error: Invalid URL")
         return None
-    
-    if not check_for_valid_resolution(*resolution):
+
+    if len(*resolution) > 1:
+        print("Warning: Only 1 resolution needed. Getting the highest listed")
+        resolution = max(*resolution)
+
+    if not check_for_valid_resolution(resolution):
         print("Error: Invalid resolution")
         return None
 
