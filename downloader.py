@@ -5,7 +5,7 @@ CURRENT_DIRECTORY = Path(__file__).parent
 DOWNLOAD_PATH = CURRENT_DIRECTORY / 'Downloads'
 
 def main() -> None:
-    download_single_video(r'https://www.youtube.com/watch?v=GkFqe3tZVpg&pp=ygURaG90IHBvdCBjb21tYW5kZXI%3D', [720, 1080])
+    download_playlist_audio(r'https://www.youtube.com/playlist?list=PLVjuPmviYbgOwedr3hbxGX3zBXaYfq3e9')
 
 def handle_playlist_error(error, failed_downloads, 
                           downloaded_videos, video) -> None:
@@ -20,19 +20,8 @@ def list_failed_videos(failed_downloads) -> None:
             print(failed_download)
 
 
-def print_border() -> None:
-    print("+--------------------+")
-
-
-def get_audio_stream(url:str) -> str:
-    yt = YouTube(url, use_po_token=True)
-    print(yt.title)
-
-    audio_stream = yt.streams.get_audio_only()
-
-    return audio_stream
-
 def check_for_valid_resolution(resolution:int) -> bool:
+    # Somehow this broke
     print(resolution)
     valid_resolutions = [144, 240, 360, 480, 720, 1080]
 
@@ -44,12 +33,14 @@ def check_for_valid_resolution(resolution:int) -> bool:
     return False
 
 # New get_stream function WIP
+# Nahhh, separate these two please, this is too complicated
 def get_stream(url:str, stream_type:str, *resolution:int) -> str:
     if not url.startswith('https://www.youtube.com'):
         print("Error: Invalid URL")
         # Log this
         return None
 
+    print(f"@get_stream: {len(resolution)}") # Temp
     if len(resolution) > 1:
         print("Warning: Only one resolution is allowed")
 
@@ -63,13 +54,12 @@ def get_stream(url:str, stream_type:str, *resolution:int) -> str:
 
     if stream_type == 'video':
         video_resolution = resolution[0]
-        if check_for_valid_resolution(video_resolution):
-            video_stream = yt.streams.get_by_resolution(video_resolution)
-            
-            return video_stream
-
-        print("Error: Invalid resolution")
-        return None
+        if not check_for_valid_resolution(video_resolution):
+            print("Error: Invalid resolution")
+            return None
+        
+        video_stream = yt.streams.get_by_resolution(video_resolution)
+        return video_stream
 
     print("Error: Stream type is invalid")
     return None
@@ -80,8 +70,7 @@ def new_download_stream(url:str, stream_type:str, *resolution:int) -> None:
         stream = get_stream(url, 'audio')
 
     if stream_type == 'video':
-        # Check for valid resolution here?
-        stream = get_stream(url, 'video', resolution)
+        stream = get_stream(url, 'video', *resolution)
 
     try:
         if stream == None:
@@ -143,7 +132,7 @@ def download_playlist_audio(url:str) -> None:
     print(f"Process complete: {downloaded_videos} audio downloaded.")
     if failed_downloads:
         list_failed_videos(failed_downloads)
-    print_border()
+    print("+--------------------+")
 
 
 def download_playlist_video(url:str) -> None:
