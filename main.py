@@ -1,4 +1,4 @@
-import downloader as dl
+import single_downloader as dl
 
 def main() -> None:
     while True:
